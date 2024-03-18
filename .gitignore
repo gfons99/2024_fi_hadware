@@ -1,0 +1,12 @@
+# Ignore files with extension
+*.bak
+
+# Ignore direcotires
+
+# Ignore folders in any directory in any 
+db/
+incremental_db/
+output_files/
+simulation/
+
+# Ignore files inside the a directory
