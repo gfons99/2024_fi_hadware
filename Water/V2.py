@@ -42,21 +42,31 @@ def generar_graficos_por_hora(data):
         'Conductividad': (0, 1500)
     }
 
-    # Crear gráficos para cada columna por hora
-    for columna in ['Temperatura', 'pH', 'Polution', 'Conductividad']:
-        plt.figure(figsize=(10, 6))
-        for i, registro in enumerate(ultimos_registros[columna]):
-            plt.plot([i], [registro], marker='o', markersize=5, label=f'Registro {i+1}')
+    # Crear subgráficos para cada columna por hora
+    fig, axs = plt.subplots(4, 1, figsize=(10, 12))
 
-        plt.title(f'{columna} por hora de los últimos 10 registros')
-        plt.xlabel('Hora')
-        plt.ylabel(columna)
-        plt.xticks(range(10), ultimos_registros['Hora'], rotation=45)
-        plt.ylim(limites[columna])
-        plt.legend()
-        plt.grid(True)
-        plt.tight_layout()
-        plt.show()
+    for i, columna in enumerate(['Temperatura', 'pH', 'Polution', 'Conductividad']):
+        axs[i].plot(ultimos_registros['Hora'], ultimos_registros[columna], marker='o', markersize=5)
+        axs[i].set_title(f'{columna} por hora de los últimos 10 registros')
+        axs[i].set_xlabel('Hora')
+        axs[i].set_ylabel(columna)
+        axs[i].set_ylim(limites[columna])
+        
+        # Configurar los ticks para el gráfico de Temperatura
+        if columna == 'Temperatura':
+            axs[i].set_yticks(range(0, 51, 10))  # Establece ticks de 0 a 50 con incrementos de 10.
+            axs[i].set_yticklabels(range(0, 51, 10))  # Etiquetas para los ticks desde 0 a 50.
+
+        # Asegúrate de que las etiquetas de los ticks para pH se muestren correctamente
+        if columna == 'pH':
+            axs[i].set_yticks(range(0, 15, 1))  # Establece ticks desde 0 a 14 con incrementos de 1.
+            axs[i].set_yticklabels(range(0, 15, 1))  # Etiquetas para los ticks desde 0 a 14.
+
+        axs[i].grid(True)
+
+    plt.tight_layout()
+    plt.show()
+
 
 # Leer los datos del archivo Excel
 datos = leer_datos_excel('Data.xlsx')
