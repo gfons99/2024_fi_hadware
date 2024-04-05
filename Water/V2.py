@@ -1,3 +1,6 @@
+import tkinter as tk
+from tkinter import ttk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import openpyxl
 import matplotlib.pyplot as plt
 
@@ -29,7 +32,6 @@ def leer_datos_excel(archivo):
 
     return data
 
-# Función para generar gráficos por hora
 def generar_graficos_por_hora(data):
     # Obtener los últimos 10 registros
     ultimos_registros = {key: value[-10:] for key, value in data.items()}
@@ -52,24 +54,52 @@ def generar_graficos_por_hora(data):
         axs[i].set_ylabel(columna)
         axs[i].set_ylim(limites[columna])
         
-        # Configurar los ticks para el gráfico de Temperatura
         if columna == 'Temperatura':
-            axs[i].set_yticks(range(0, 51, 10))  # Establece ticks de 0 a 50 con incrementos de 10.
-            axs[i].set_yticklabels(range(0, 51, 10))  # Etiquetas para los ticks desde 0 a 50.
-
-        # Asegúrate de que las etiquetas de los ticks para pH se muestren correctamente
+            axs[i].set_yticks(range(0, 51, 10))
+            axs[i].set_yticklabels(range(0, 51, 10))
         if columna == 'pH':
-            axs[i].set_yticks(range(0, 15, 1))  # Establece ticks desde 0 a 14 con incrementos de 1.
-            axs[i].set_yticklabels(range(0, 15, 1))  # Etiquetas para los ticks desde 0 a 14.
+            axs[i].set_yticks(range(0, 15, 1))
+            axs[i].set_yticklabels(range(0, 15, 1))
 
         axs[i].grid(True)
 
-    plt.tight_layout()
-    plt.show()
-
+    # Retorna la figura en lugar de mostrarla
+    return fig
 
 # Leer los datos del archivo Excel
 datos = leer_datos_excel('Data.xlsx')
 
-# Generar gráficos por hora
-generar_graficos_por_hora(datos)
+# Modifica esta función para agregar las gráficas a la pestaña
+def agregar_graficas(tab):
+    # Utiliza la función modificada para obtener la figura con las gráficas
+    datos = leer_datos_excel('Data.xlsx')
+    fig = generar_graficos_por_hora(datos)
+    
+    # Crear un lienzo y agregar la figura
+    canvas = FigureCanvasTkAgg(fig, master=tab)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+    
+# Crear la ventana principal
+root = tk.Tk()
+root.title("Sistema de Monitoreo")
+
+# Crear el control de pestañas
+tab_control = ttk.Notebook(root)
+
+# Crear la primera pestaña de gráficas
+tab_horas = ttk.Frame(tab_control)
+tab_control.add(tab_horas, text='Horas')
+agregar_graficas(tab_horas)
+
+# Crear la segunda pestaña de inicio
+tab_lobby = ttk.Frame(tab_control)
+tab_control.add(tab_lobby, text='Lobby')
+mensaje_inicio = tk.Label(tab_lobby, text="Pantalla de inicio", padx=5, pady=5)
+mensaje_inicio.pack()
+
+# Posicionar el control de pestañas en la ventana
+tab_control.pack(expand=1, fill='both')
+
+# Iniciar el bucle principal de la interfaz gráfica
+root.mainloop()
