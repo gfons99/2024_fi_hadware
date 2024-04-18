@@ -8,200 +8,128 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-entity fsm_i2c_ads1115 is
+entity i2c_fsm is
     port (
         -- entradas:
-        clk, rst: in std_logic;
+        dcl, scl: in std_logic;
+        rst, ena: in std_logic;
 
-        dir_slave: in std_logic; -- dirección del esclavo
-        sda_i: in std_logic;
-
-        dir_reg_p: in std_logic; -- dirección del registro analógico A3-A0 (bits P1:P0)
-        adc_16: in std_logic;
-        
+        datos: in std_logic;        
+        i_sda: in std_logic;
         -- salidas:
-        o_scl, o_Sda; out std_logic;
+        sel_scl: out std_logic_vector(1 downto 0) := "01"; -- 0: scl    -- 1: '1'
+        sel_sda: out std_logic_vector(1 downto 0) := "01"; -- 0: dcl    -- 1: '1' o datos
+
+        o_sda: out std_logic := '1';
+        o_slave_error: out std_logic
     );
 end entity;
 
-architecture frgm of fsm_i2c_ads1115 is 
-
-type estados is(e0,e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16);
-signal presente: estados := e0;
-signal bits : integer range 0 to 7 := 0;
+architecture frgm of i2c_fsm is 
+    type estados is(edo0,edo1,edo2,edo3,edo4,edo5,edo6,e_slv_error);
+    signal presente: estados := edo0;
+    signal bits : integer range 0 to 7 := 0;
+    -- (r/_w): '1' read, '0' write
+    constant dir_slave_rw: std_logic_vector(7 downto 0) := "10010000"; -- dirección del esclavo & rw
 
 begin
-    process(clk, rst, sda_i)
+    process(dcl, scl)
     begin
-        if rising_edge(clk) then
+        if rst = '1' then
+            presente <= edo0;
+        elsif rising_edge(dcl) then
             case presente is
-                -- ****** FRAME 1 ******
-                -- start scl: 1 a tic-tac; sda_o: 1 a 0;
-                when e0 =>
+                when edo0 => -- READY 1
                     -- edo. siguiente
-                    presente <= e1;
-                    -- entradas / salidas
-                    e_scl <= '0'; e_sda <= '1'; sda_o<='0';
-                -- slave receiver address (7 bits)
-                when e1 =>
-                    -- edo. siguiente
-                    if bits <= 6 then
-                        presente <= e1;
-                        bits <= bits + 1;
+                    if ena = '0' then
+                        presente <= edo0;
                     else
-                        presente <= e2;
-                        bits <= 0;
+                        presente <= edo1;
                     end if;
                     -- entradas / salidas
-                    e_sda <= '1'; sda_o <= dir_slave;
-                -- r/_w (1 bit)
-                when e2 =>
-                    -- edo. siguiente
-                    presente <= e3;
-                    -- entradas / salidas
-                    e_sda <= '1'; sda_o <= '0'; -- write
-                -- ack o _ack del esclavo al maestro
-                when e3 =>
-                    -- edo. siguiente
-                    if sda_i = '0' then
-                        presente <= e4;
-                    elsif sda_i = '1' then
-                        presente <= e4;
-                    elsif sda_i = 'Z' then
-                        presente <= e3;
-                    end if;
-                    -- entradas / salidas
-                
-                -- ****** FRAME 2 ******
-                -- data: Elegir un canal analógico
-                when e4 =>
-                    -- edo. siguiente
-                    if bits <= 7 then
-                        presente <= e4;
-                        bits <= bits + 1;
-                    else
-                        presente <= e5;
-                        bits <= 0;
-                    end if;
-                    -- entradas / salidas
-                    e_sda <= '1'; sda_o <= dir_reg_p;
-                -- ack o _ack del esclavo al maestro
-                when e5 =>
-                    -- edo. siguiente
-                    if sda_i = '0' then
-                        presente <= e6;
-                    elsif sda_i = '1' then
-                        presente <= e6;
-                    elsif sda_i = 'Z' then
-                        presente <= e5;
-                    end if;
-                    -- entradas / salidas
-                
-                -- stop scl: tic-tac a 1; sda_o: 0 a 1;
-                when e6 =>
-                    -- edo. siguiente
-                    presente <= e7;
-                    -- entradas / salidas
-                    e_scl <= '1'; sda_o<='1';
-                
-                -- TIEMPO DE ESPERA*********
-                when e7 =>
-                
-                -- ****** FRAME 3 ******
-                -- start scl: 1 a tic-tac; sda_o: 1 a 0;
-                when e8 =>
-                    -- edo. siguiente
-                    presente <= e9;
-                    -- entradas / salidas
-                    e_scl <= '0'; e_sda <= '1'; sda_o<='0';
-                -- slave receiver address (7 bits)
-                when e9 =>
-                    -- edo. siguiente
-                    if bits <= 6 then
-                        presente <= e9;
-                        bits <= bits + 1;
-                    else
-                        presente <= e10;
-                        bits <= 0;
-                    end if;
-                    -- entradas / salidas
-                    e_sda <= '1'; sda_o <= dir_slave;
-                -- r/_w (1 bit)
-                when e10 =>
-                    -- edo. siguiente
-                    presente <= e9;
-                    -- entradas / salidas
-                    e_sda <= '1'; sda_o <= '1'; -- read
-                -- ack o _ack del esclavo al maestro
-                when e11 =>
-                    -- edo. siguiente
-                    if sda_i = '0' then
-                        presente <= e12;
-                    elsif sda_i = '1' then
-                        presente <= e12;
-                    elsif sda_i = 'Z' then
-                        presente <= e11;
-                    end if;
-                    -- entradas / salidas
-                
-                -- ****** FRAME 4 ******
-                -- Leer el registro de 16 bits (del 15 al 0, en ese orden)
-                when e12 =>
-                    -- edo. siguiente
-                    if bits <= 7 then
-                        presente <= e12;
-                        bits <= bits + 1;
-                    else
-                        presente <= e13;
-                        bits <= 0;
-                    end if;
-                    -- entradas / salidas
-                    adc_16 <= sda_i;
-                -- ack o _ack del esclavo al maestro
-                when e13 =>
-                    -- edo. siguiente
-                    if sda_i = '0' then
-                        presente <= e14;
-                    elsif sda_i = '1' then
-                        presente <= e14;
-                    elsif sda_i = 'Z' then
-                        presente <= e13;
-                    end if;
-                    -- entradas / salidas
-                
-                    -- ****** FRAME 5 ******
-                -- Leer el registro de 16 bits (del 15 al 0, en ese orden)
-                when e14 =>
-                    -- edo. siguiente
-                    if bits <= 7 then
-                        presente <= e14;
-                        bits <= bits + 1;
-                    else
-                        presente <= e15;
-                        bits <= 0;
-                    end if;
-                    -- entradas / salidas
-                    adc_16 <= sda_i;
-                -- ack o _ack del esclavo al maestro
-                when e15 =>
-                    -- edo. siguiente
-                    if sda_i = '0' then
-                        presente <= e16;
-                    elsif sda_i = '1' then
-                        presente <= e16;
-                    elsif sda_i = 'Z' then
-                        presente <= e15;
-                    end if;
-                    -- entradas / salidas
-                
-                -- stop scl: tic-tac a 1; sda_o: 0 a 1;
-                when e16 =>
-                    -- edo. siguiente
-                    presente <= e0;
-                    -- entradas / salidas
-                    e_scl <= '1'; sda_o<='1';
+                    sel_scl <= "01";
+                    sel_sda <= "01";
 
+                when edo1 => -- START
+                    -- edo. siguiente
+                    presente <= edo2;
+                    -- entradas / salidas
+                    sel_scl <= "01";
+                    sel_sda <= "00"; -- dcl
 
+                -- ****** FRAME 1: SLAVE RECEIVER ADDRESS ******
+                when edo2 => -- slave receiver address (7 bits: orden de envío real="6543210 & rw", orden de envío lógico="0123456  & rw")
+                    -- edo. siguiente
+                    if bits < 7 then
+                        presente <= edo2;
+                        bits <= bits + 1;
+                    else
+                        presente <= edo3;
+                        bits <= 0;
+                    end if;
+                    -- entradas / salidas
+                    sel_scl <= "00"; -- scl
+                    sel_sda <= "01"; -- datos
+                    o_sda <= dir_slave_rw(bits);
+
+                when edo3 => -- ack o _ack
+                    -- edo. siguiente
+                    presente <= edo4;
+                    -- entradas / salidas
+                    sel_scl <= "00"; -- scl
+                    sel_sda <= "01"; -- datos
+                    o_sda <= 'Z';
+
+                -- ****** FRAME 2: DATA ******
+                -- data (8 bits: orden de envío real="76543210", orden de envío lógico="01234567")
+                when edo4 => --> revisar (0: ack, 1: not ack), y transmitir, o no
+                -- edo. siguiente
+                if bits < 7 then
+                    if (bits = 0 and i_sda = '0') then
+                        presente <= edo4;
+                    else
+                        presente <= e_slv_error;
+                    end if;
+                    bits <= bits + 1;
+                else
+                    presente <= edo5;
+                    bits <= 0;
+                end if;
+                -- entradas / salidas
+                sel_scl <= "00"; -- scl
+                sel_sda <= "01"; -- datos
+                o_sda <= datos;
+
+                when edo5 => -- ack o _ack
+                    -- edo. siguiente
+                    if ena = '0' then
+                        presente <= edo6;
+                    else
+                        presente <= edo4;
+                    end if;
+                    -- entradas / salidas
+                    sel_scl <= "00"; -- scl
+                    sel_sda <= "01"; -- datos
+                    o_sda <= 'Z';
+                
+                when edo6 => -- STOP
+                    -- edo. siguiente
+                    if i_sda = '0' then
+                        presente <= edo0;
+                    else
+                        presente <= e_slv_error;
+                    end if;
+                    -- entradas / salidas
+                    sel_scl <= "01";
+                    sel_sda <= "10"; -- not dcl
+
+                when e_slv_error =>
+                    -- edo. siguiente
+                    presente <= edo0;
+                    -- entradas / salidas
+                    o_slave_error <= '1';
+
+                
             end case;
         end if;
     end process;

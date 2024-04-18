@@ -9,24 +9,28 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-generic(k_scl: integer := 7); -- k = (50 mhz/2*fdeseada) - 1
-generic(k_dlc: integer := 3); -- k = (50 mhz/2*fdeseada) - 1
-generic(atraso: integer := 1); -- atraso = (periodo/4) = ((k+1)/4)
-
 entity divf_scl_dcl is
+	generic(
+        k_scl: integer := 7; -- k = (50 mhz/2*fdeseada) - 1
+        k_dcl: integer := 3; -- k = (50 mhz/2*fdeseada) - 1
+        atraso: integer := 1 -- atraso = (periodo/4) = ((k+1)/4)
+
+    ); 
+
     port (
         -- entradas:
-        clk_mst: in std_logic;
+        clk: in std_logic;
         -- salidas:
-        scl: out std_logic;
-        dcl: out std_logic;
+        scl: buffer std_logic := '0';
+        dcl: buffer std_logic := '0';
+        dlc_not: buffer std_logic := '1'
     );
 end entity;
 
 architecture frgm of divf_scl_dcl is 
 
 signal cont_scl: integer range 0 to k_scl := atraso;
-signal cont_dcl2: integer range 0 to k_dlc := 0;
+signal cont_dcl: integer range 0 to k_dcl := 0;
 
 begin
     
@@ -45,11 +49,12 @@ begin
 
         -- reloj dcl sin retraso
         if rising_edge(clk) then
-            if cont_dcl2 = 0 then
+            if cont_dcl = 0 then
                 dcl <= not dcl;
-                cont_dcl2 <= k_dcl;
+                dlc_not <= not dlc_not;
+                cont_dcl <= k_dcl;
             else
-                cont_dcl2 <= cont_dcl2 - 1;
+                cont_dcl <= cont_dcl - 1;
             end if;
         end if;
 
