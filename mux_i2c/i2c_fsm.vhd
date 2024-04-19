@@ -11,38 +11,38 @@ use ieee.std_logic_1164.all;
 entity i2c_fsm is
     port (
         -- entradas:
-        dcl, scl: in std_logic;
+        dcl: in std_logic;
         rst, ena: in std_logic;
 
-        i_datos: in std_logic;
+        i_escritura: in std_logic;
         i_sda: in std_logic;
         -- salidas:
         sel_scl: out std_logic_vector(1 downto 0) := "01"; -- 00: scl    -- 01: '1'
         sel_sda: out std_logic_vector(1 downto 0) := "01"; -- 00: dcl    -- 01: '1' o -- 10: datos -- 11: not dcl
 
-        o_datos:out std_logic;
+        o_lectura:out std_logic;
         o_sda: out std_logic := '1';
         o_slave_error: out std_logic
     );
 end entity;
 
 architecture frgm of i2c_fsm is 
-    type estados is(edo0,edo1,edo2,edo3,edo_write,edo_ack2,edo_espera_read,edo_read,edo_stop,edo_slv_error);
-    signal presente: estados := edo0;
+    type estados is(edo_ready,edo1,edo2,edo3,edo_write,edo_ack2,edo_espera_read,edo_read,edo_stop,edo_slv_error);
+    signal presente: estados := edo_ready;
     signal bits: integer range 0 to 7 := 0;
     signal rw: std_logic;
 
 begin
-    process(dcl, scl)
+    process(dcl)
     begin
         if rst = '1' then
-            presente <= edo0;
+            presente <= edo_ready;
         elsif rising_edge(dcl) then
             case presente is
-                when edo0 => -- READY
+                when edo_ready => -- READY
                     -- edo. siguiente
                     if ena = '0' then
-                        presente <= edo0;
+                        presente <= edo_ready;
                     else
                         presente <= edo1;
                     end if;
@@ -70,7 +70,7 @@ begin
                     -- entradas / salidas
                     sel_scl <= "00"; -- scl
                     sel_sda <= "10"; -- datos
-                    o_sda <= i_datos;
+                    o_sda <= i_escritura;
 
                 when edo3 => -- ACK1
                     -- edo. siguiente
@@ -104,7 +104,7 @@ begin
                     -- entradas / salidas
                     sel_scl <= "00"; -- scl
                     sel_sda <= "10"; -- datos
-                    o_sda <= i_datos;
+                    o_sda <= i_escritura;
 
                 when edo_ack2 => -- ACK2
                     -- edo. siguiente
@@ -148,13 +148,13 @@ begin
                     -- entradas / salidas
                     sel_scl <= "00"; -- scl
                     sel_sda <= "10"; -- datos
-                    o_datos <= i_sda;
+                    o_lectura <= i_sda;
                 
                 -- ****** FIN ******
                 when edo_stop => -- STOP
                     -- edo. siguiente
                     if i_sda = '0' then
-                        presente <= edo0;
+                        presente <= edo_ready;
                     else
                         presente <= edo_slv_error;
                     end if;
@@ -164,7 +164,7 @@ begin
 
                 when edo_slv_error =>
                     -- edo. siguiente
-                    presente <= edo0;
+                    presente <= edo_ready;
                     -- entradas / salidas
                     o_slave_error <= '1';
                     bits <= 0;
