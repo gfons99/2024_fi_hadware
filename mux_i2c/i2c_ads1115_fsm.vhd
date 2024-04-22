@@ -19,12 +19,13 @@ entity i2c_ads1115_fsm is
         -- salidas:
         o_ena: out std_logic;
         o_write: out std_logic;
+		o_show_edo_frame: out integer range 1 to 5;
         adc_16b: out std_logic_vector(15 downto 0)
     );
 end entity;
 
 architecture frgm of i2c_ads1115_fsm is 
-    type estados is(edo_start_f12,edo_dir_slv_f12,edo_ack1,edo_sel_adc,edo_ack2,edo_stop_f12,edo_espera_adc,edo_start_f345,edo_dir_slv_f345,edo_ack3,edo_read_adc_15_8,edo_ack_4,edo_read_adc_7_0,edo_ack_5,edo_stop_f345);
+    type estados is(edo_start_f12,edo_dir_slv_f12,edo_ack1,edo_sel_adc,edo_ack2,edo_stop_f12,edo_start_f345,edo_dir_slv_f345,edo_ack3,edo_read_adc_15_8,edo_ack_4,edo_read_adc_7_0,edo_ack_5,edo_stop_f345);
     signal presente: estados := edo_start_f12;
     signal bits : integer range 0 to 15 := 0;
     signal t_espera: integer := 3124999;
@@ -49,6 +50,7 @@ begin
                     presente <= edo_dir_slv_f12;
                     -- entradas / salidas
                     o_ena <= '1';
+						  o_show_edo_frame <= 1;
                 when edo_dir_slv_f12 => -- slave receiver address (8 bits: orden de envío real="6543210 & rw", orden de envío lógico="0123456  & rw")
                     -- edo. siguiente
                     if bits < 7 then
@@ -81,6 +83,7 @@ begin
                     -- entradas / salidas
                     mem_dir_adc <= mem_addr_p_reg & sw_adc_ch;
                     o_write <= mem_dir_adc(bits);
+						  o_show_edo_frame <= 2;
                 when edo_ack2 => -- ESPERA: ack o _ack
                     -- edo. siguiente
                     presente <= edo_stop_f12;
@@ -88,18 +91,18 @@ begin
                     o_ena <= '0';
                 when edo_stop_f12 =>
                     -- edo. siguiente
-                    presente <= edo_espera_adc;
+                    presente <= edo_start_f345;
                     -- entradas / salidas
-                when edo_espera_adc =>
-                    -- edo. siguiente
-                    if t_espera = 0 then
-                        t_espera <= 3124999;
-                        presente <= edo_start_f345;
-                    else
-                        t_espera <= t_espera - 1;
-                        presente <= edo_espera_adc;
-                    end if;
-                    -- entradas / salidas
+                -- when edo_espera_adc =>
+                --     -- edo. siguiente
+                --     if t_espera = 0 then
+                --         t_espera <= 3124999;
+                --         presente <= edo_start_f345;
+                --     else
+                --         t_espera <= t_espera - 1;
+                --         presente <= edo_espera_adc;
+                --     end if;
+                --     -- entradas / salidas
                 
                 -- ****** FRAME 3: SLAVE RECEIVER ADDRESS & RW ******
                 when edo_start_f345 =>
@@ -107,6 +110,7 @@ begin
                     presente <= edo_dir_slv_f345;
                     -- entradas / salidas
                     o_ena <= '1';
+						  o_show_edo_frame <= 3;
                 when edo_dir_slv_f345 => -- slave receiver address (8 bits: orden de envío real="6543210 & rw", orden de envío lógico="0123456  & rw")
                     -- edo. siguiente
                     if bits < 7 then
@@ -138,6 +142,7 @@ begin
                     end if;
                     -- entradas / salidas
                     mem_adc_16b(bits) <= i_read;
+						  o_show_edo_frame <= 4;
                 when edo_ack_4 => -- ESPERA: ack o _ack
                     -- edo. siguiente
                     presente <= edo_read_adc_7_0;
@@ -157,6 +162,7 @@ begin
                     end if;
                     -- entradas / salidas
                     mem_adc_16b(bits) <= i_read;
+						  o_show_edo_frame <= 5;
                 when edo_ack_5 => -- ESPERA: ack o _ack
                     -- edo. siguiente
                     presente <= edo_stop_f345;

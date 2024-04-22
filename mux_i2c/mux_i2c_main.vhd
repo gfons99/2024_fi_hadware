@@ -20,6 +20,7 @@ entity mux_i2c_main is
         x_sda: buffer std_logic;
         led_slave_error: out std_logic;
         
+        led_7s_frame: out std_logic_vector(7 downto 0);
         led_7s_dig4: out std_logic_vector(7 downto 0);
         led_7s_dig3: out std_logic_vector(7 downto 0);
         led_7s_dig2: out std_logic_vector(7 downto 0);
@@ -74,6 +75,7 @@ architecture frgm of mux_i2c_main is
             -- salidas:
             o_ena: out std_logic;
             o_write: out std_logic;
+				o_show_edo_frame: out integer range 1 to 5;
             adc_16b: out std_logic_vector(15 downto 0)
         );
     end component;
@@ -111,6 +113,7 @@ signal s_sel_sda: std_logic_vector(1 downto 0) := "01";
 signal s_read: std_logic;
 signal s_o_sda: std_logic := '1';
 -- signal s_o_slave_error: std_logic;
+signal s_o_show_edo_frame: integer range 1 to 5;
 signal s_adc_16b: std_logic_vector(15 downto 0);
 signal s_dig4,s_dig3,s_dig2,s_dig1,s_dig0: integer range 0 to 9; 
 
@@ -148,6 +151,7 @@ begin
         s_read,
         s_ena,
         s_write,
+		  s_o_show_edo_frame,
         s_adc_16b
     );
     mux_scl: mux_clk port map(
@@ -166,6 +170,11 @@ begin
         sw_adc_ch,
         x_sda
     );
+	deco_edo_frame: deco_bin_a_7seg port map(
+        s_o_show_edo_frame,
+        led_7s_frame
+	);
+	 
     deco_adc_16b: deco_16b_5num port map(
         s_dcl,
         s_adc_16b,
