@@ -24,7 +24,7 @@ entity ads1115_fsm is
 end entity;
 
 architecture frgm of ads1115_fsm is 
-    type estados is(edo_ready,edo_espera_start,ed_dir_slv,edo_ack1,edo_dir_adc,edo_ack2,espera_stop,espera_adc,edo_ready_f345,edo_espera_start_f345,ed_dir_slv_f345,edo_ack3,edo_read_adc_15_8,edo_ack4,edo_read_adc_7_0,edo_espera_stop_f345);
+    type estados is(edo_ready,edo_espera_start,edo_dir_slv,edo_ack1,edo_dir_adc,edo_ack2,espera_stop,espera_adc,edo_ready_f345,edo_espera_start_f345,ed_dir_slv_f345,edo_ack3,edo_read_adc_15_8,edo_ack4,edo_read_adc_7_0,edo_espera_stop_f345);
     signal presente: estados := edo_ready;
     signal bits : integer range 0 to 7 := 0;
     signal t_espera: integer := 3124999;
@@ -50,14 +50,14 @@ begin
 
                 when edo_espera_start => -- START
                     -- edo. siguiente
-                    presente <= ed_dir_slv;
+                    presente <= edo_dir_slv;
                     -- entradas / salidas
 
                 -- ****** FRAME 1: SLAVE RECEIVER ADDRESS & RW******
-                when ed_dir_slv => -- slave receiver address (8 bits: orden de envío real="6543210 & rw", orden de envío lógico="0123456  & rw")
+                when edo_dir_slv => -- slave receiver address (8 bits: orden de envío real="6543210 & rw", orden de envío lógico="0123456  & rw")
                     -- edo. siguiente
                     if bits < 7 then
-                        presente <= ed_dir_slv;
+                        presente <= edo_dir_slv;
                         bits <= bits + 1;
                     else
                         presente <= edo_ack1;

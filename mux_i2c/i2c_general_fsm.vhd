@@ -1,5 +1,5 @@
 -- ****************************************
--- tittle:	Controlador para el ADS1115
+-- tittle:	Controlador genérico para I2C
 -- author:	F.R., G.M.
 -- date: 2024-04
 -- description: Máquina de estados de Moore
@@ -34,7 +34,7 @@ architecture frgm of i2c_general_fsm is
     signal rw: std_logic;
 
 begin
-    process(dcl)
+    process(dcl,rst,ena)
     begin
         if rst = '1' then
             presente <= edo_idle;
