@@ -3,7 +3,8 @@
 
 # Ignore direcotires
 
-# Ignore folders in any directory in any 
+# Ignore folders in any directory in any
+.qsys_edit/
 db/
 incremental_db/
 output_files/
