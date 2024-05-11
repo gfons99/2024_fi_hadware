@@ -151,7 +151,7 @@ begin
         s_read,
         s_ena,
         s_write,
-		  s_o_show_edo_frame,
+		s_o_show_edo_frame,
         s_adc_16b
     );
     mux_scl: mux_clk port map(
