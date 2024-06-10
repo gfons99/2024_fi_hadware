@@ -12,7 +12,9 @@ entity divf is
 	-- 249999   >> 100 hz
 	-- 2499999  >> 10 hz
 	-- 24999999 >> 1 hz
-	generic(frec: integer := 24999); -- frec = (50 mhz/2*fdeseada) - 1
+	generic(
+		frec: integer := 24999
+	); -- frec = (50 mhz/2*fdeseada) - 1
 	port(
 		clk_mst: in std_logic; -- reloj principal
 		clk: buffer std_logic

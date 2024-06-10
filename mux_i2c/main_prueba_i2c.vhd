@@ -24,10 +24,7 @@ entity mux_i2c_main is
         led_7s_edo_ads1115: out std_logic_vector(7 downto 0);   -- HEX1
 
         led_7s_pulso_i2c: out std_logic_vector(7 downto 0);     -- HEX2
-        led_7s_pulso_ads1115: out std_logic_vector(7 downto 0); -- HEX3
-
-        led_7s_bits_i2c: out std_logic_vector(7 downto 0);      -- HEX4
-        led_7s_bits_ads1115: out std_logic_vector(7 downto 0);  -- HEX5
+        led_7s_pulso_ads1115: out std_logic_vector(7 downto 0);     -- HEX3
 
         -- led_7s_dig4: out std_logic_vector(7 downto 0);
         -- led_7s_dig3: out std_logic_vector(7 downto 0);
@@ -65,8 +62,8 @@ architecture frgm of mux_i2c_main is
             o_tx: out std_logic;
     
             o_error: out std_logic;
-            debug_o_show_edo: buffer integer range 0 to 9;
-            debug_o_show_pulso: out integer range 0 to 9;
+            o_show_edo: out integer range 0 to 9;
+            o_show_pulso: out integer range 0 to 9;
             debug_o_mem_bits_rx: out std_logic_vector(7 downto 0)
         );
     end component;
@@ -81,11 +78,12 @@ architecture frgm of mux_i2c_main is
             i_rx: in std_logic;
             o_tx: out std_logic;
             
+            -- entradas:
             sw_adc_ch: in std_logic_vector(1 downto 0);
     
             -- salidas:
-            debug_o_show_edo: buffer integer range 0 to 9;
-            debug_o_show_pulso: out integer range 0 to 9;
+            o_show_edo: out integer range 0 to 9;
+            o_show_pulso: out integer range 0 to 9;
             adc_16b: out std_logic_vector(15 downto 0)
         );
     end component;
@@ -131,14 +129,14 @@ begin
         clk_50,
         s_clk_divf
     );
-    -- divisor_0_7: divf
-    -- generic map(
-    --     frec=> 7
-    -- )
-    -- port map(
-    --     s_clk_divf,
-    --     s_clk_0_7
-    -- );
+    divisor_0_7: divf
+    generic map(
+        frec=> 7
+    )
+    port map(
+        s_clk_divf,
+        s_clk_0_7
+    );
     i2c: i2c_general_fsm port map(
         s_clk_divf,
         sw_rst,
@@ -156,7 +154,7 @@ begin
         led_bits_8
     );
     ads1115: i2c_ads1115_fsm port map(
-        s_clk_divf,
+        s_clk_0_7,
         sw_rst,
         s_ena,
         s_tx,
@@ -182,32 +180,4 @@ begin
         s_o_show_pulso_ads1115,
         led_7s_pulso_ads1115
 	);
-
-    
-    -- deco_adc_16b: deco_16b_5num port map(
-    --     s_dcl,
-    --     s_adc_16b,
-    --     s_dig4,s_dig3,s_dig2,s_dig1,s_dig0
-    -- );
-    -- dig4_7seg: deco_bin_a_7seg port map(
-    --     s_dig4,
-    --     led_7s_dig4
-    -- );
-    -- dig3_7seg: deco_bin_a_7seg port map(
-    --     s_dig3,
-    --     led_7s_dig3
-    -- );
-    -- dig2_7seg: deco_bin_a_7seg port map(
-    --     s_dig2,
-    --     led_7s_dig2
-    -- );
-    -- dig1_7seg: deco_bin_a_7seg port map(
-    --     s_dig1,
-    --     led_7s_dig1
-    -- );
-    -- dig0_7seg: deco_bin_a_7seg port map(
-    --     s_dig0,
-    --     led_7s_dig0
-    -- );
-
 end architecture;
