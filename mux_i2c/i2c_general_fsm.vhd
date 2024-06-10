@@ -24,7 +24,8 @@ entity i2c_general_fsm is
         o_error: out std_logic;
         debug_o_show_edo: buffer integer range 0 to 9;
         debug_o_show_pulso: out integer range 0 to 9;
-        debug_o_mem_bits_rx: out std_logic_vector(7 downto 0)
+        debug_o_show_cont_bits: out integer range 0 to 7;
+        debug_o_mem_bits: out std_logic_vector(7 downto 0)
     );
 end entity;
 
@@ -60,7 +61,7 @@ begin
             s_cont_pulso <= 0;
             s_cont_bits <= 0;
 
-            debug_o_mem_bits_rx <= "00000000";
+            debug_o_mem_bits <= "00000000";
             presente <= edo_idle;
         elsif rising_edge(clk_50) then
             -- duración de 1 estado
@@ -144,7 +145,7 @@ begin
                     end if;
                     -- entradas / salidas
                     io_sda <= i_rx;
-                    debug_o_mem_bits_rx(s_cont_bits) <= i_rx;
+                    debug_o_mem_bits(s_cont_bits) <= i_rx;
                 
                 when edo_ack1 =>
                     -- 0 1 2 3 4 5 6 7
@@ -181,7 +182,7 @@ begin
                     end if;
                     -- entradas / salidas
                     io_sda <= 'Z';
-                    debug_o_mem_bits_rx <= "00000000";
+                    debug_o_mem_bits <= "00000000";
 
                 -- ****** frame 2: write data ******
                 -- data (8 bits: orden de envío real="76543210", orden de envío lógico="01234567")
@@ -211,7 +212,7 @@ begin
                     end if;
                     -- entradas / salidas
                     io_sda <= i_rx;
-                    debug_o_mem_bits_rx(s_cont_bits) <= i_rx;
+                    debug_o_mem_bits(s_cont_bits) <= i_rx;
 
                 when edo_ack2_write =>
                     -- 0 1 2 3 4 5 6 7
@@ -246,7 +247,7 @@ begin
                     end if;
                     -- entradas / salidas
                     io_sda <= 'Z';
-                    debug_o_mem_bits_rx <= "00000000";
+                    debug_o_mem_bits <= "00000000";
                 
                 -- ****** frame 2: read data ******
                 -- data (8 bits: orden de recepción real="76543210", orden de recepción lógico="01234567")
@@ -306,7 +307,7 @@ begin
                         end if;
                     end if;
                     -- entradas / salidas
-                    debug_o_mem_bits_rx <= "00000000";
+                    debug_o_mem_bits <= "00000000";
                 
                 -- ****** fin de i2c ******
                 when edo_stop =>
@@ -345,4 +346,5 @@ begin
     end process;
 
     debug_o_show_pulso <= s_cont_pulso;
+    debug_o_show_cont_bits <= s_cont_bits;
 end architecture;

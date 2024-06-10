@@ -23,6 +23,7 @@ entity i2c_ads1115_fsm is
         -- salidas:
         debug_o_show_edo: buffer integer range 0 to 9;
         debug_o_show_pulso: out integer range 0 to 9;
+        debug_o_show_cont_bits: out integer range 0 to 15;
         adc_16b: out std_logic_vector(15 downto 0)
     );
 end entity;
@@ -281,7 +282,7 @@ begin
                             s_cont_bits <= s_cont_bits + 1;
                             presente <= edo_wr_f4_config_7_0;
                         else
-                            s_cont_bits <= 8;
+                            s_cont_bits <= 0;
                             presente <= edo_wr_f4_ack4;
                             -- debug_o_show_edo <= debug_o_show_edo + 1;
                         end if;
@@ -457,5 +458,6 @@ begin
                 end case;
         end if;
         debug_o_show_pulso <= s_cont_pulso;
+        debug_o_show_cont_bits <= s_cont_bits;
     end process;
 end architecture;
