@@ -31,7 +31,7 @@ end entity;
 architecture frgm of cont_i2c_ads1115 is 
     signal s_ack: std_logic := '0';
 
-    signal s_cont_pulso: integer range 0 to 7 := 0; -- ancho del pulso = (50 mhz/2*fdeseada) - 1 = 7 --> de 000 a 111 = 8 = 3 bits    
+    signal s_cont_pulso: integer range 0 to 248 := 0; -- ancho del pulso = (50 mhz/2*fdeseada) - 1 = 7 --> de 000 a 111 = 8 = 3 bits    
     signal s_cont_bits: integer range 0 to 127 := 0;
     signal s_cont_pos: integer range 0 to 15 := 0;
     signal s_cont_pos_8b: integer range 0 to 7 := 0;
@@ -66,7 +66,7 @@ begin
 
         elsif rising_edge(clk) then
             -- duración de 1 pulso
-            if s_cont_pulso < 7 then
+            if s_cont_pulso < 248 then
                 s_cont_pulso <= s_cont_pulso + 1;
             else
                 s_cont_pulso <= 0;
@@ -81,9 +81,9 @@ begin
                 if s_cont_pulso = 0 then
                     io_scl <= '1';
                     io_sda <= '1';
-                elsif s_cont_pulso = 4 then
+                elsif s_cont_pulso = 124 then
                     io_sda <= '0';
-                elsif s_cont_pulso = 6 then
+                elsif s_cont_pulso = 186 then
                     io_scl <= '0';
                 end if;
             -- stop
@@ -93,9 +93,9 @@ begin
                     -- ⎽ ⎽ ⎽ ⎽ ⎺ ⎺ ⎺ ⎺ io_sda
                     if s_cont_pulso = 0 then
                         io_sda <= '0';
-                    elsif s_cont_pulso = 2 then
+                    elsif s_cont_pulso = 62 then
                         io_scl <= '1';
-                    elsif s_cont_pulso = 4 then
+                    elsif s_cont_pulso = 124 then
                         io_sda <= '1';
                     end if;
             -- pendiente: agregar elsifs start, stop
@@ -105,9 +105,9 @@ begin
                 -- * * * * * * * * io_sda (low: ack, high: not ack)
                 if s_cont_pulso = 0 then
                     io_scl <= '0';
-                elsif s_cont_pulso = 2 then
+                elsif s_cont_pulso = 62 then
                     io_scl <= '1';
-                elsif s_cont_pulso = 5 then
+                elsif s_cont_pulso = 186 then
                     io_scl <= '0';
                 end if;
             end if;
@@ -118,7 +118,7 @@ begin
             -- wr, f1: slave address
             if s_cont_bits > 0 and s_cont_bits < 8 then
                 io_sda <= c_mem_dir_slave(6 - s_cont_pos);
-                if s_cont_pulso = 7 then
+                if s_cont_pulso = 248 then
                     s_cont_pos <= s_cont_pos + 1;
                 end if;
 
@@ -135,12 +135,12 @@ begin
             -- wr, f2: address pointer register
             elsif s_cont_bits > 9 and s_cont_bits < 18 then
                 -- wr, f1: ack by ads1115
-                if s_cont_bits = 10 and s_cont_pulso = 4 then
+                if s_cont_bits = 10 and s_cont_pulso = 124 then
                     s_ack <= io_sda;
                     -- pendiente: agregar qué pasa cuando no hay ack
                 end if;
                 io_sda <= c_mem_addr_p_reg_wr(7 - s_cont_pos);
-                if s_cont_pulso = 7 then
+                if s_cont_pulso = 248 then
                     s_cont_pos <= s_cont_pos + 1;
                 end if;
 
@@ -152,12 +152,12 @@ begin
             -- wr, f3: config byte 1
             elsif s_cont_bits > 18 and s_cont_bits < 27 then
                 -- wr, f2: ack by ads1115
-                if s_cont_bits = 19 and s_cont_pulso = 4 then
+                if s_cont_bits = 19 and s_cont_pulso = 124 then
                     s_ack <= io_sda;
                     -- pendiente: agregar qué pasa cuando no hay ack
                 end if;
                 io_sda <= c_mem_config_reg(15 - s_cont_pos);
-                if s_cont_pulso = 7 then
+                if s_cont_pulso = 248 then
                     s_cont_pos <= s_cont_pos + 1;
                 end if;
             
@@ -169,12 +169,12 @@ begin
             -- wr, f4: config byte 0
             elsif s_cont_bits > 27 and s_cont_bits < 36 then
                 -- wr, f3: ack by ads1115
-                if s_cont_bits = 28 and s_cont_pulso = 4 then
+                if s_cont_bits = 28 and s_cont_pulso = 124 then
                     s_ack <= io_sda;
                     -- pendiente: agregar qué pasa cuando no hay ack
                 end if;
                 io_sda <= c_mem_config_reg(15 - s_cont_pos);
-                if s_cont_pulso = 7 then
+                if s_cont_pulso = 248 then
                     s_cont_pos <= s_cont_pos + 1;
                 end if;
             
@@ -186,7 +186,7 @@ begin
             -- wr, f4: stop
             elsif s_cont_bits = 37 then
                 -- wr, f4: ack by ads1115
-                if s_cont_bits = 37 and s_cont_pulso = 4 then
+                if s_cont_bits = 37 and s_cont_pulso = 124 then
                     s_ack <= io_sda;
                     -- pendiente: agregar qué pasa cuando no hay ack
                 end if;
@@ -197,7 +197,7 @@ begin
             -- rd, f1: slave address
             elsif s_cont_bits > 38 and s_cont_bits < 46 then
                 io_sda <= c_mem_dir_slave(6 - s_cont_pos);
-                if s_cont_pulso = 7 then
+                if s_cont_pulso = 248 then
                     s_cont_pos <= s_cont_pos + 1;
                 end if;
 
@@ -214,12 +214,12 @@ begin
             -- rd, f2: address pointer register
             elsif s_cont_bits > 47 and s_cont_bits < 56 then
                 -- rd, f1: ack by ads1115
-                if s_cont_bits = 48 and s_cont_pulso = 4 then
+                if s_cont_bits = 48 and s_cont_pulso = 124 then
                     s_ack <= io_sda;
                     -- pendiente: agregar qué pasa cuando no hay ack
                 end if;
                 io_sda <= c_mem_addr_p_reg_rd(7 - s_cont_pos);
-                if s_cont_pulso = 7 then
+                if s_cont_pulso = 248 then
                     s_cont_pos <= s_cont_pos + 1;
                 end if;
 
@@ -231,7 +231,7 @@ begin
             -- rd, f2: stop
             elsif s_cont_bits = 57 then
                 -- rd, f2: ack by ads1115
-                if s_cont_bits = 57 and s_cont_pulso = 4 then
+                if s_cont_bits = 57 and s_cont_pulso = 124 then
                     s_ack <= io_sda;
                     -- pendiente: agregar qué pasa cuando no hay ack
                 end if;
@@ -239,7 +239,7 @@ begin
             -- rd, f3: slave address
             elsif s_cont_bits > 58 and s_cont_bits < 66 then
                 io_sda <= c_mem_dir_slave(6 - s_cont_pos);
-                if s_cont_pulso = 7 then
+                if s_cont_pulso = 248 then
                     s_cont_pos <= s_cont_pos + 1;
                 end if;
 
@@ -254,7 +254,7 @@ begin
                 io_sda <= 'Z';
 
             -- rd, f3: ack by ads1115
-            elsif s_cont_bits = 68 and s_cont_pulso = 4 then
+            elsif s_cont_bits = 68 and s_cont_pulso = 124 then
                     s_ack <= io_sda;
                     -- pendiente: agregar qué pasa cuando no hay ack
 
@@ -263,21 +263,21 @@ begin
             -- 0  1  2  3  4  5  6  7
             -- 15 14 13 12 11 10 9  8 
             elsif s_cont_bits > 68 and s_cont_bits < 77 then
-                if s_cont_pulso = 4 then
+                if s_cont_pulso = 124 then
                     s_mem_adc_16(15 - s_cont_pos) <= io_sda;
                     -- s_mem_adc_16(15 - s_cont_pos) <= '1';
                 end if;
-                if s_cont_pulso = 7 then
+                if s_cont_pulso = 248 then
                     s_cont_pos <= s_cont_pos + 1;
                 end if;
 
                 -- rd, f4: ack by master
-                if s_cont_pulso = 7 and s_cont_bits = 76 then
+                if s_cont_pulso = 248 and s_cont_bits = 76 then
                     io_sda <= '0';
                 end if;
 
             -- rd, f4: ack by master
-            elsif s_cont_bits = 77 and s_cont_pulso = 4 then
+            elsif s_cont_bits = 77 and s_cont_pulso = 124 then
                     s_ack <= io_sda;
                     -- pendiente: agregar qué pasa cuando no hay ack
                 s_cont_pos <= 8;
@@ -285,22 +285,22 @@ begin
 
             -- rd, f5: data byte 0
             elsif s_cont_bits > 77 and s_cont_bits < 86 then
-                if s_cont_pulso = 4 then
+                if s_cont_pulso = 124 then
                     s_mem_adc_16(15 - s_cont_pos) <= io_sda;
                     -- s_mem_adc_16(15 - s_cont_pos) <= '1';
                 end if;
-                if s_cont_pulso = 7 then
+                if s_cont_pulso = 248 then
                     s_cont_pos <= s_cont_pos + 1;
                 end if;
 
                 -- rd, f5: ack by master
-                if s_cont_pulso = 7 and s_cont_bits = 85 then
+                if s_cont_pulso = 248 and s_cont_bits = 85 then
                     io_sda <= '0';
                 end if;
             
             -- rd, f5: ack by master  & stop
             elsif s_cont_bits = 86 then
-                if s_cont_pulso = 4 then
+                if s_cont_pulso = 124 then
                     s_ack <= io_sda;
                 end if;
                 -- pendiente: agregar qué pasa cuando no hay ack
@@ -315,10 +315,10 @@ begin
             -- wr, f1: slave address
             if s_cont_bits > 1 and s_cont_bits < 10 then
                 debug_show_frame <= 1;
-                if s_cont_pulso = 4 then
+                if s_cont_pulso = 124 then
                     debug_o_mem_bits(s_cont_pos_8b) <= io_sda;
                 end if;
-                if s_cont_pulso = 7 then
+                if s_cont_pulso = 248 then
                     s_cont_pos_8b <= s_cont_pos_8b + 1;
                 end if;
             elsif s_cont_bits = 10 then
@@ -326,10 +326,10 @@ begin
                 debug_o_mem_bits <= "00000000";
             elsif s_cont_bits > 10 and s_cont_bits < 19 then
                 debug_show_frame <= 2;
-                if s_cont_pulso = 4 then
+                if s_cont_pulso = 124 then
                     debug_o_mem_bits(s_cont_pos_8b) <= io_sda;
                 end if;
-                if s_cont_pulso = 7 then
+                if s_cont_pulso = 248 then
                     s_cont_pos_8b <= s_cont_pos_8b + 1;
                 end if;
             elsif s_cont_bits = 19 then
@@ -337,10 +337,10 @@ begin
                 debug_o_mem_bits <= "00000000";
             elsif s_cont_bits > 19 and s_cont_bits < 28 then
                 debug_show_frame <= 3;
-                if s_cont_pulso = 4 then
+                if s_cont_pulso = 124 then
                     debug_o_mem_bits(s_cont_pos_8b) <= io_sda;
                 end if;
-                if s_cont_pulso = 7 then
+                if s_cont_pulso = 248 then
                     s_cont_pos_8b <= s_cont_pos_8b + 1;
                 end if;
             elsif s_cont_bits = 28 then
@@ -348,10 +348,10 @@ begin
                 debug_o_mem_bits <= "00000000";
             elsif s_cont_bits > 28 and s_cont_bits < 37 then
                 debug_show_frame <= 4;
-                if s_cont_pulso = 4 then
+                if s_cont_pulso = 124 then
                     debug_o_mem_bits(s_cont_pos_8b) <= io_sda;
                 end if;
-                if s_cont_pulso = 7 then
+                if s_cont_pulso = 248 then
                     s_cont_pos_8b <= s_cont_pos_8b + 1;
                 end if;
             elsif s_cont_bits = 37 then
@@ -359,10 +359,10 @@ begin
                 debug_o_mem_bits <= "00000000";
             elsif s_cont_bits > 39 and s_cont_bits < 48 then
                 debug_show_frame <= 5;
-                if s_cont_pulso = 4 then
+                if s_cont_pulso = 124 then
                     debug_o_mem_bits(s_cont_pos_8b) <= io_sda;
                 end if;
-                if s_cont_pulso = 7 then
+                if s_cont_pulso = 248 then
                     s_cont_pos_8b <= s_cont_pos_8b + 1;
                 end if;
             elsif s_cont_bits = 48 then
@@ -370,10 +370,10 @@ begin
                 debug_o_mem_bits <= "00000000";
             elsif s_cont_bits > 48 and s_cont_bits < 57 then
                 debug_show_frame <= 6;
-                if s_cont_pulso = 4 then
+                if s_cont_pulso = 124 then
                     debug_o_mem_bits(s_cont_pos_8b) <= io_sda;
                 end if;
-                if s_cont_pulso = 7 then
+                if s_cont_pulso = 248 then
                     s_cont_pos_8b <= s_cont_pos_8b + 1;
                 end if;
             elsif s_cont_bits = 57 then
@@ -381,10 +381,10 @@ begin
                 debug_o_mem_bits <= "00000000";
             elsif s_cont_bits > 59 and s_cont_bits < 68 then
                 debug_show_frame <= 7;
-                if s_cont_pulso = 4 then
+                if s_cont_pulso = 124 then
                     debug_o_mem_bits(s_cont_pos_8b) <= io_sda;
                 end if;
-                if s_cont_pulso = 7 then
+                if s_cont_pulso = 248 then
                     s_cont_pos_8b <= s_cont_pos_8b + 1;
                 end if;
             elsif s_cont_bits = 68 then
@@ -396,10 +396,10 @@ begin
             -- 1  0  1  1  1  1  1  0
             elsif s_cont_bits > 68 and s_cont_bits < 77 then
                 debug_show_frame <= 8;
-                if s_cont_pulso = 4 then
+                if s_cont_pulso = 124 then
                     debug_o_mem_bits(s_cont_pos_8b) <= io_sda;
                 end if;
-                if s_cont_pulso = 7 then
+                if s_cont_pulso = 248 then
                     s_cont_pos_8b <= s_cont_pos_8b + 1;
                 end if;
             elsif s_cont_bits = 77 then
@@ -407,10 +407,10 @@ begin
                 debug_o_mem_bits <= "00000000";
             elsif s_cont_bits > 77 and s_cont_bits < 86 then
                 debug_show_frame <= 9;
-                if s_cont_pulso = 4 then
+                if s_cont_pulso = 124 then
                     debug_o_mem_bits(s_cont_pos_8b) <= io_sda;
                 end if;
-                if s_cont_pulso = 7 then
+                if s_cont_pulso = 248 then
                     s_cont_pos_8b <= s_cont_pos_8b + 1;
                 end if;
             elsif s_cont_bits = 86 then
