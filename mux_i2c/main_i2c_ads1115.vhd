@@ -66,6 +66,7 @@ architecture frgm of main_i2c_ads1115 is
             debug_cont_pulso: out integer range 0 to 7;
             debug_cont_bits: out integer range 0 to 99;
             debug_cont_pos: out integer range 0 to 15;
+            debug_cont_pos_8b: out integer range 0 to 7;
 
             debug_show_frame: out integer range 0 to 9;
             debug_mem_adc_16: out std_logic_vector(15 downto 0);
@@ -141,6 +142,7 @@ signal s_clk_mux: std_logic;
 signal s_debug_cont_pulso: integer range 0 to 7;
 signal s_debug_cont_bits: integer range 0 to 99;
 signal s_debug_cont_pos: integer range 0 to 15;
+signal s_debug_cont_pos_8b: integer range 0 to 7;
 signal s_debug_show_frame: integer range 0 to 15;
 signal s_debug_mem_adc_16: std_logic_vector(15 downto 0);
 
@@ -172,7 +174,7 @@ begin
         -- 249999   >> 100 hz
         -- 2499999  >> 10 hz
         -- 24999999 >> 1 hz
-        frec=> 24999999
+        frec=> 2499999
     )
     port map(
         clk_50,
@@ -193,6 +195,7 @@ begin
         s_debug_cont_pulso,
         s_debug_cont_bits,
         s_debug_cont_pos,
+        s_debug_cont_pos_8b,
         s_debug_show_frame,
         s_debug_mem_adc_16,
         led_bits_8
@@ -205,8 +208,8 @@ begin
         s_int_debug_7s_hex1,    -- bits dig0
         s_int_debug_7s_hex2,    -- bits dig1
         s_debug_cont_pos,       -- pos
+        s_debug_cont_pos_8b,    -- pos 8b
         s_debug_show_frame,     -- frame
-        s_int_debug_7s_hex5,
 
         s_int_release_7s_hex0,
         s_int_release_7s_hex1,

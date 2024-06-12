@@ -20,6 +20,7 @@ entity cont_i2c_ads1115 is
         debug_cont_pulso: out integer range 0 to 7;
         debug_cont_bits: out integer range 0 to 99;
         debug_cont_pos: out integer range 0 to 15;
+        debug_cont_pos_8b: out integer range 0 to 7;
 
         debug_show_frame: out integer range 0 to 9;
         debug_mem_adc_16: out std_logic_vector(15 downto 0);
@@ -38,10 +39,10 @@ architecture frgm of cont_i2c_ads1115 is
     -- datos:
     constant c_mem_dir_slave: std_logic_vector(6 downto 0) := "1001000"; -- dirección del esclavo
     constant c_mem_addr_p_reg_wr: std_logic_vector(7 downto 0) := "00000001"; -- config register [p1:p0]="01"
-    constant c_mem_config_reg: std_logic_vector(15 downto 0) := "1100000110000011"; -- config register [p1:p0]="01"
+    constant c_mem_config_reg: std_logic_vector(15 downto 0) := "1100000010000011"; -- config register [p1:p0]="01"
     constant c_mem_addr_p_reg_rd: std_logic_vector(7 downto 0) := "00000000"; -- read from register [p1:p0]="00"
 
-    signal s_mem_adc_16: std_logic_vector(15 downto 0) := "0000000000000000"; -- máx. 65,535
+    signal s_mem_adc_16: std_logic_vector(15 downto 0) := "0000000000000000"; -- máx. 65,535, atorado en 65,278
     
 
 
@@ -258,6 +259,9 @@ begin
                     -- pendiente: agregar qué pasa cuando no hay ack
 
             -- rd, f4: data byte 1
+            -- 69 70 71 72 73 74 75 76
+            -- 0  1  2  3  4  5  6  7
+            -- 15 14 13 12 11 10 9  8 
             elsif s_cont_bits > 68 and s_cont_bits < 77 then
                 if s_cont_pulso = 4 then
                     s_mem_adc_16(15 - s_cont_pos) <= io_sda;
@@ -268,7 +272,7 @@ begin
                 end if;
 
                 -- rd, f4: ack by master
-                if s_cont_bits = 76 then
+                if s_cont_pulso = 7 and s_cont_bits = 76 then
                     io_sda <= '0';
                 end if;
 
@@ -290,7 +294,7 @@ begin
                 end if;
 
                 -- rd, f5: ack by master
-                if s_cont_bits = 85 then
+                if s_cont_pulso = 7 and s_cont_bits = 85 then
                     io_sda <= '0';
                 end if;
             
@@ -301,7 +305,7 @@ begin
                 end if;
                 -- pendiente: agregar qué pasa cuando no hay ack
                 s_cont_pos <= 0;
-                s_cont_bits <= 0;
+                s_cont_bits <= 38;
                 -- io_sda controlado por "stop"
             end if;
 
@@ -386,6 +390,10 @@ begin
             elsif s_cont_bits = 68 then
                 s_cont_pos_8b <= 0;
                 debug_o_mem_bits <= "00000000";
+            -- 69 70 71 72 73 74 75 76
+            -- 0  1  2  3  4  5  6  7
+            -- 15 14 13 12 11 10 9  8
+            -- 1  0  1  1  1  1  1  0
             elsif s_cont_bits > 68 and s_cont_bits < 77 then
                 debug_show_frame <= 8;
                 if s_cont_pulso = 4 then
@@ -416,5 +424,6 @@ begin
     debug_cont_pulso <= s_cont_pulso;
     debug_cont_bits <= s_cont_bits;
     debug_cont_pos <= s_cont_pos;
+    debug_cont_pos_8b <= s_cont_pos_8b;
     debug_mem_adc_16 <= s_mem_adc_16;
 end architecture;
