@@ -2,13 +2,13 @@
 -- tittle: Decodificador de 16 bits
 -- author: F.R., G.M.
 -- date: 2024-04
--- description: Recibe un número entero y lo separa en dígitos
+-- description: Recibe un número entero y lo separa en dígitos, máx 65,535
 -- ****************************************
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity deco_16b_5num is
+entity deco_16b_a_5int is
     port(
         clk: in std_logic;
         num_bin: in std_logic_vector(15 downto 0);
@@ -16,7 +16,7 @@ entity deco_16b_5num is
     );
 end entity;
 
-architecture frgm of deco_16b_5num is
+architecture frgm of deco_16b_a_5int is
 
 -- 16 bits
 signal num_int: integer range 0 to 65535;

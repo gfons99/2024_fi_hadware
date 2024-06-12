@@ -39,7 +39,7 @@
 
 set_global_assignment -name FAMILY "MAX 10"
 set_global_assignment -name DEVICE 10M50DAF484C7G
-set_global_assignment -name TOP_LEVEL_ENTITY main_i2c_ads1115
+set_global_assignment -name TOP_LEVEL_ENTITY mux_i2c_main
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 22.1STD.1
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "21:32:24  MARCH 31, 2024"
 set_global_assignment -name LAST_QUARTUS_VERSION "22.1std.1 Lite Edition"
@@ -58,9 +58,14 @@ set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 set_location_assignment PIN_P11 -to clk_50
 set_location_assignment PIN_B11 -to led_slave_error
-set_location_assignment PIN_C12 -to sw_adc_ch[0]
-set_location_assignment PIN_A12 -to sw_adc_ch[1]
-set_location_assignment PIN_C10 -to sw_rst
+set_location_assignment PIN_C10 -to sw_adc_ch[0]
+set_location_assignment PIN_C11 -to sw_adc_ch[1]
+set_location_assignment PIN_D12 -to sw_rst
+set_location_assignment PIN_V10 -to x_scl
+set_location_assignment PIN_C12 -to x_sda
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_location_assignment PIN_A8 -to led_bits_8[7]
 set_location_assignment PIN_A9 -to led_bits_8[6]
 set_location_assignment PIN_A10 -to led_bits_8[5]
@@ -69,65 +74,56 @@ set_location_assignment PIN_D13 -to led_bits_8[3]
 set_location_assignment PIN_C13 -to led_bits_8[2]
 set_location_assignment PIN_E14 -to led_bits_8[1]
 set_location_assignment PIN_D14 -to led_bits_8[0]
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
-set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
-set_global_assignment -name VHDL_FILE mux_debug_release.vhd
-set_global_assignment -name VHDL_FILE main_i2c_ads1115.vhd
-set_global_assignment -name VHDL_FILE deco_16b_a_5int.vhd
-set_global_assignment -name VHDL_FILE divf.vhd
-set_global_assignment -name VHDL_FILE deco_int_a_7seg.vhd
-set_global_assignment -name VHDL_FILE cont_i2c_ads1115.vhd
-set_location_assignment PIN_C14 -to led_7s_hex0[7]
-set_location_assignment PIN_E15 -to led_7s_hex0[6]
-set_location_assignment PIN_C15 -to led_7s_hex0[5]
-set_location_assignment PIN_C16 -to led_7s_hex0[4]
-set_location_assignment PIN_E16 -to led_7s_hex0[3]
-set_location_assignment PIN_D17 -to led_7s_hex0[2]
-set_location_assignment PIN_C17 -to led_7s_hex0[1]
-set_location_assignment PIN_D15 -to led_7s_hex0[0]
-set_location_assignment PIN_C18 -to led_7s_hex1[7]
-set_location_assignment PIN_D18 -to led_7s_hex1[6]
-set_location_assignment PIN_E18 -to led_7s_hex1[5]
-set_location_assignment PIN_B16 -to led_7s_hex1[4]
-set_location_assignment PIN_A17 -to led_7s_hex1[3]
-set_location_assignment PIN_A18 -to led_7s_hex1[2]
-set_location_assignment PIN_B17 -to led_7s_hex1[1]
-set_location_assignment PIN_A16 -to led_7s_hex1[0]
-set_location_assignment PIN_B20 -to led_7s_hex2[7]
-set_location_assignment PIN_A20 -to led_7s_hex2[6]
-set_location_assignment PIN_B19 -to led_7s_hex2[5]
-set_location_assignment PIN_A21 -to led_7s_hex2[4]
-set_location_assignment PIN_B21 -to led_7s_hex2[3]
-set_location_assignment PIN_C22 -to led_7s_hex2[2]
-set_location_assignment PIN_B22 -to led_7s_hex2[1]
-set_location_assignment PIN_A19 -to led_7s_hex2[0]
-set_location_assignment PIN_F21 -to led_7s_hex3[7]
-set_location_assignment PIN_E22 -to led_7s_hex3[6]
-set_location_assignment PIN_E21 -to led_7s_hex3[5]
-set_location_assignment PIN_C19 -to led_7s_hex3[4]
-set_location_assignment PIN_C20 -to led_7s_hex3[3]
-set_location_assignment PIN_D19 -to led_7s_hex3[2]
-set_location_assignment PIN_E17 -to led_7s_hex3[1]
-set_location_assignment PIN_D22 -to led_7s_hex3[0]
-set_location_assignment PIN_F18 -to led_7s_hex4[7]
-set_location_assignment PIN_E20 -to led_7s_hex4[6]
-set_location_assignment PIN_E19 -to led_7s_hex4[5]
-set_location_assignment PIN_J18 -to led_7s_hex4[4]
-set_location_assignment PIN_H19 -to led_7s_hex4[3]
-set_location_assignment PIN_F19 -to led_7s_hex4[2]
-set_location_assignment PIN_F20 -to led_7s_hex4[1]
-set_location_assignment PIN_F17 -to led_7s_hex4[0]
-set_location_assignment PIN_J20 -to led_7s_hex5[7]
-set_location_assignment PIN_K20 -to led_7s_hex5[6]
-set_location_assignment PIN_L18 -to led_7s_hex5[5]
-set_location_assignment PIN_N18 -to led_7s_hex5[4]
-set_location_assignment PIN_M20 -to led_7s_hex5[3]
-set_location_assignment PIN_N19 -to led_7s_hex5[2]
-set_location_assignment PIN_N20 -to led_7s_hex5[1]
-set_location_assignment PIN_L19 -to led_7s_hex5[0]
-set_location_assignment PIN_V10 -to gpio_scl
-set_location_assignment PIN_W10 -to gpio_sda
-set_location_assignment PIN_D12 -to sw_sel_mux
-set_location_assignment PIN_C11 -to sw_ena
+set_location_assignment PIN_C14 -to led_7s_edo_i2c[7]
+set_location_assignment PIN_E15 -to led_7s_edo_i2c[6]
+set_location_assignment PIN_C15 -to led_7s_edo_i2c[5]
+set_location_assignment PIN_C16 -to led_7s_edo_i2c[4]
+set_location_assignment PIN_E16 -to led_7s_edo_i2c[3]
+set_location_assignment PIN_D17 -to led_7s_edo_i2c[2]
+set_location_assignment PIN_C17 -to led_7s_edo_i2c[1]
+set_location_assignment PIN_D15 -to led_7s_edo_i2c[0]
+set_location_assignment PIN_C18 -to led_7s_edo_ads1115[7]
+set_location_assignment PIN_D18 -to led_7s_edo_ads1115[6]
+set_location_assignment PIN_E18 -to led_7s_edo_ads1115[5]
+set_location_assignment PIN_B16 -to led_7s_edo_ads1115[4]
+set_location_assignment PIN_A17 -to led_7s_edo_ads1115[3]
+set_location_assignment PIN_A18 -to led_7s_edo_ads1115[2]
+set_location_assignment PIN_B17 -to led_7s_edo_ads1115[1]
+set_location_assignment PIN_A16 -to led_7s_edo_ads1115[0]
+set_location_assignment PIN_B20 -to led_7s_pulso_i2c[7]
+set_location_assignment PIN_A20 -to led_7s_pulso_i2c[6]
+set_location_assignment PIN_B19 -to led_7s_pulso_i2c[5]
+set_location_assignment PIN_A21 -to led_7s_pulso_i2c[4]
+set_location_assignment PIN_B21 -to led_7s_pulso_i2c[3]
+set_location_assignment PIN_C22 -to led_7s_pulso_i2c[2]
+set_location_assignment PIN_B22 -to led_7s_pulso_i2c[1]
+set_location_assignment PIN_A19 -to led_7s_pulso_i2c[0]
+set_location_assignment PIN_F21 -to led_7s_pulso_ads1115[7]
+set_location_assignment PIN_E22 -to led_7s_pulso_ads1115[6]
+set_location_assignment PIN_E21 -to led_7s_pulso_ads1115[5]
+set_location_assignment PIN_C19 -to led_7s_pulso_ads1115[4]
+set_location_assignment PIN_C20 -to led_7s_pulso_ads1115[3]
+set_location_assignment PIN_D19 -to led_7s_pulso_ads1115[2]
+set_location_assignment PIN_E17 -to led_7s_pulso_ads1115[1]
+set_location_assignment PIN_D22 -to led_7s_pulso_ads1115[0]
+set_location_assignment PIN_F18 -to led_7s_cont_bits_i2c[7]
+set_location_assignment PIN_E20 -to led_7s_cont_bits_i2c[6]
+set_location_assignment PIN_E19 -to led_7s_cont_bits_i2c[5]
+set_location_assignment PIN_J18 -to led_7s_cont_bits_i2c[4]
+set_location_assignment PIN_H19 -to led_7s_cont_bits_i2c[3]
+set_location_assignment PIN_F19 -to led_7s_cont_bits_i2c[2]
+set_location_assignment PIN_F20 -to led_7s_cont_bits_i2c[1]
+set_location_assignment PIN_F17 -to led_7s_cont_bits_i2c[0]
+set_location_assignment PIN_J20 -to led_7s_cont_bits_ads1115[7]
+set_location_assignment PIN_K20 -to led_7s_cont_bits_ads1115[6]
+set_location_assignment PIN_L18 -to led_7s_cont_bits_ads1115[5]
+set_location_assignment PIN_N18 -to led_7s_cont_bits_ads1115[4]
+set_location_assignment PIN_M20 -to led_7s_cont_bits_ads1115[3]
+set_location_assignment PIN_N19 -to led_7s_cont_bits_ads1115[2]
+set_location_assignment PIN_N20 -to led_7s_cont_bits_ads1115[1]
+set_location_assignment PIN_L19 -to led_7s_cont_bits_ads1115[0]
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+set_global_assignment -name VHDL_FILE cont_i2c_ads1115.vhd
+set_global_assignment -name VHDL_FILE deco_int_a_7seg.vhd
+set_global_assignment -name VHDL_FILE mux_i2c_main.vhd
+set_global_assignment -name VHDL_FILE divf.vhd
