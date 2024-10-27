@@ -1,5 +1,5 @@
 -- ****************************************
--- DIVISOR DE FRECUENCIA
+-- tittle: DIVISOR DE FRECUENCIA
 -- author: M.I. B.E.A.S.
 -- date: 2022-02-07
 -- ****************************************

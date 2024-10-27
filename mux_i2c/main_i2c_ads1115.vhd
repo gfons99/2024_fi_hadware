@@ -15,11 +15,14 @@ entity main_i2c_ads1115 is
 		sw_sel_mux: in std_logic;
         sw_ena: in std_logic;
         sw_rst: in std_logic;
-        sw_adc_ch: in std_logic_vector(1 downto 0);
+        sw2_sel_ch: in std_logic_vector(1 downto 0);
+        sw_busy: in std_logic;
 
         -- salidas:
-        gpio_scl: inout std_logic;
+        gpio_scl: out std_logic;
         gpio_sda: inout std_logic;
+        gpio_uart_tx: inout std_logic;
+
         led_slave_error: out std_logic;
 
         led_7s_hex0: out std_logic_vector(7 downto 0);
@@ -38,7 +41,7 @@ entity main_i2c_ads1115 is
         -- led_7s_cont_bits_i2c: out std_logic_vector(7 downto 0);      -- HEX4
         -- led_7s_cont_bits_ads1115: out std_logic_vector(7 downto 0);  -- HEX5
 
-        led_bits_8: out std_logic_vector(7 downto 0)
+        led8_debug_mem_bits: out std_logic_vector(7 downto 0)
 	);
 end entity;
 
@@ -59,18 +62,20 @@ architecture frgm of main_i2c_ads1115 is
             clk: in std_logic;
             ena: in std_logic;
             rst: in std_logic;
-
-            io_scl: inout std_logic := '1';
+            sel_ch: in std_logic_vector(1 downto 0);
+    
+            o_scl: out std_logic := '1';
             io_sda: inout std_logic := '1';
             
-            debug_cont_pulso: out integer range 0 to 7;
-            debug_cont_bits: out integer range 0 to 99;
-            debug_cont_pos: out integer range 0 to 15;
-            debug_cont_pos_8b: out integer range 0 to 7;
-
-            debug_show_frame: out integer range 0 to 9;
-            debug_mem_adc_16: out std_logic_vector(15 downto 0);
-            debug_o_mem_bits: out std_logic_vector(7 downto 0)
+            -- debug_cont_pulso: out integer range 0 to 7;
+            -- debug_cont_bits: out integer range 0 to 99;
+            -- debug_cont_pos: out integer range 0 to 15;
+            -- debug_cont_pos_8b: out integer range 0 to 7;
+            -- debug_show_frame: out integer range 0 to 9;
+    
+            debug_o_mem_1frame_8bits: out std_logic_vector(7 downto 0);
+            o_mem_adc_16: out std_logic_vector(15 downto 0)
+            
         );
     end component;
 
@@ -136,6 +141,16 @@ architecture frgm of main_i2c_ads1115 is
         );
     end component;
 
+    component uart_tx
+        port(
+            clk: in std_logic; -- 50 MHz
+            busy: in std_logic; -- inicia comunicacion -- SWITCH
+            dmx,mx,cx,dx,ux: in integer range 0 to 9;
+    
+            tx_out: out std_logic -- datos a transmitir
+        );
+    end component;
+
 signal s_clk_divf: std_logic;
 signal s_clk_mux: std_logic;
 
@@ -144,7 +159,7 @@ signal s_debug_cont_bits: integer range 0 to 99;
 signal s_debug_cont_pos: integer range 0 to 15;
 signal s_debug_cont_pos_8b: integer range 0 to 7;
 signal s_debug_show_frame: integer range 0 to 15;
-signal s_debug_mem_adc_16: std_logic_vector(15 downto 0);
+signal s_mem_adc_16: std_logic_vector(15 downto 0);
 
 signal s_int_debug_7s_hex0: integer range 0 to 15;
 signal s_int_debug_7s_hex1: integer range 0 to 15;
@@ -190,15 +205,17 @@ begin
         s_clk_mux,
         sw_ena,
         sw_rst,
+        sw2_sel_ch,
         gpio_scl,
         gpio_sda,
-        s_debug_cont_pulso,
-        s_debug_cont_bits,
-        s_debug_cont_pos,
-        s_debug_cont_pos_8b,
-        s_debug_show_frame,
-        s_debug_mem_adc_16,
-        led_bits_8
+        -- s_debug_cont_pulso,
+        -- s_debug_cont_bits,
+        -- s_debug_cont_pos,
+        -- s_debug_cont_pos_8b,
+        -- s_debug_show_frame,
+        led8_debug_mem_bits,
+        s_mem_adc_16
+        
     );
     mux_dbg_rls: mux_debug_release port map(
         -- entradas
@@ -234,7 +251,7 @@ begin
     );
     deco_adc: deco_16b_a_5int port map(
         clk_50,
-        s_debug_mem_adc_16,
+        s_mem_adc_16,
         s_int_release_7s_hex4,
         s_int_release_7s_hex3,
         s_int_release_7s_hex2,
@@ -264,6 +281,16 @@ begin
 	deco_hex5: deco_bin_a_7seg port map(
         s_led_7s_hex5,
         led_7s_hex5
+	);
+	ads1115_uart_tx: uart_tx port map(
+        clk_50,
+        sw_busy,
+        s_int_release_7s_hex4,
+        s_int_release_7s_hex3,
+        s_int_release_7s_hex2,
+        s_int_release_7s_hex1,
+        s_int_release_7s_hex0,
+        gpio_uart_tx
 	);
 
 end architecture;
